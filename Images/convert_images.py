@@ -2,6 +2,22 @@ from pathlib import Path
 from PIL import Image
 
 
+def has_transparency(img):
+    if img.info.get("transparency", None) is not None:
+        return True
+    if img.mode == "P":
+        transparent = img.info.get("transparency", -1)
+        for _, index in img.getcolors():
+            if index == transparent:
+                return True
+    elif img.mode == "RGBA":
+        extrema = img.getextrema()
+        if extrema[3][0] < 255:
+            return True
+
+    return False
+
+
 def convert_webp(source, destination_dir):
     """Convert image from webp.
     Args: source (pathlib.Path): Path to source image
@@ -26,6 +42,7 @@ def main():
     paths = source_dir.glob("*.webp")
 
     for path in paths:
+        print("Processing: ", path)
         webp_path = convert_webp(path, destination_dir)
         print("Image converted:", webp_path)
 
